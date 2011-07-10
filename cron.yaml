@@ -1,5 +1,5 @@
 cron:
 - description: daily report
   url: /report
-  schedule: every mon,tue,wed,thu,fri,sat,sun of month 05:30
+  schedule: every mon,tue,wed,thu,fri,sat,sun of month 06:30
   timezone: Asia/Tokyo
