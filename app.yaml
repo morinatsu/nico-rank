@@ -1,11 +1,14 @@
 application: nico-rank
-version: 1
+version: 2
 runtime: python
 api_version: 1
 
 handlers:
 - url: /report
-  script: nico-rank.py
+  script: nico_rank.py
+  login: admin
+- url: /test
+  script: test_nico_rank.py
   login: admin
 - url: /.*
-  script: nico-rank.py
+  script: nico_rank.py

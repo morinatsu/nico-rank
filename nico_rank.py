@@ -1,5 +1,5 @@
 ﻿# -*- coding: utf-8 -*-
-import os, re, datetime, StringIO, logging
+import os, re, datetime, StringIO, logging, cProfile, pstats
 from google.appengine.ext import webapp
 from google.appengine.ext import db
 from google.appengine.ext.webapp.util import run_wsgi_app
@@ -162,8 +162,10 @@ class CSV(webapp.RequestHandler):
 				logging.debug("relevant date fetched: %s" % relevant_date.strftime("%Y-%m-%d"))
 			return relevant_date
 		
+		logging.debug("get - start: %s" % datetime.datetime.now(JapanTZ()).isoformat(' '))
 		#基準日の取得
 		relevant_date = get_date(self.request.get("date"))
+		logging.debug("get - get_date: %s" % datetime.datetime.now(JapanTZ()).isoformat(' '))
 		logging.debug("relevant date: %s" % relevant_date.strftime("%Y-%m-%d"))
 		#text/plain指定
 		self.response.headers["Content-Type"] = "text/plain;charset=UTF-8"
@@ -171,7 +173,9 @@ class CSV(webapp.RequestHandler):
 		self.response.out.write(u'"日付","RANK","カテゴリ","タイトル","動画URL","サムネイルURL"' + "\n")
 		#CSVデータの生成
 		#基準日分のデータを取得
+		logging.debug("get - write headers: %s" % datetime.datetime.now(JapanTZ()).isoformat(' '))
 		rankings = Ranking.gql("WHERE date = :date ORDER BY rank, category_number", date=relevant_date)
+		logging.debug("get - get ranking: %s" % datetime.datetime.now(JapanTZ()).isoformat(' '))
 		for ranking in rankings:
 			#CSVに編集
 			line = '"' +	\
@@ -183,6 +187,7 @@ class CSV(webapp.RequestHandler):
 				ranking.sumnail_url	+ '"' + "\n"
 			#responseとして出力
 			self.response.out.write(line)
+		logging.debug("get - end: %s" % datetime.datetime.now(JapanTZ()).isoformat(' '))
 
 
 class JapanTZ(datetime.tzinfo):
@@ -203,9 +208,22 @@ logging.getLogger().setLevel(logging.DEBUG)
 application = webapp.WSGIApplication([("/report",Report),("/time",Time),("/.*",CSV)],debug=True)
 
 		
-def main():
-  run_wsgi_app(application)
+def real_main():
+    run_wsgi_app(application)
 
+def profile_main():
+    # This is the main function for profiling 
+    # We've renamed our original main() above to real_main()
+    prof = cProfile.Profile()
+    prof = prof.runctx("real_main()", globals(), locals())
+    stream = StringIO.StringIO()
+    stats = pstats.Stats(prof, stream=stream)
+    stats.sort_stats("time")  # Or cumulative
+    stats.print_stats(80)  # 80 = how many to print
+    # The rest is optional.
+    # stats.print_callees()
+    # stats.print_callers()
+    logging.info("Profile data:\n%s", stream.getvalue())
+ 
 if __name__ == "__main__":
-  main()
-
+    profile_main()
