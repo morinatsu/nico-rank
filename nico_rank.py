@@ -24,16 +24,6 @@ import simplejson
 import gaejson
 
 
-#def db_retry(func):
-#    """retry db access"""
-#    count = 0
-#    while count < 3:
-#        try:
-#            return func()
-#        except db.Timeout:
-#            count += 1
-
-
 #Rankingデータ
 class Ranking(db.Model):
     """Model of ranking data"""
@@ -81,9 +71,9 @@ class Store(webapp.RequestHandler):
             r_movie_url = re.compile("watch/sm[0-9]*")
             r_title_line = re.compile("class=\"watch")
             r_title = re.compile(
-                "href=\"watch/[a-z][a-z][0-9]*\">(?P<title>.*)</a></p>")
+                r'href="watch/[a-z][a-z][0-9]*\?access_from=ranking_matrix_g_.*">(?P<title>.*)</a></p>')
             r_sumnail_url = re.compile(
-                "http://tn-[a-z]*[0-9].smilevideo.jp/smile\?i=[0-9]*")
+                r"http://tn-[a-z]*[0-9].smilevideo.jp/smile\?i=[0-9]*")
             for line in lines.readlines():
                 #動画URL等をを含む行を取得
                 if r_line.search(line):
